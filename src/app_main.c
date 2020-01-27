@@ -21,6 +21,7 @@
 
 #include "gps_task.h"
 #include "mqtt_task.h"
+#include "audio_task.h"
 
 #define AppMain_TASK_STACK_SIZE    (1024 * 2)
 #define AppMain_TASK_PRIORITY      1 
@@ -101,6 +102,9 @@ void AppMainTask(void *pData)
     MqttTaskHandle = OS_CreateTask(MqttTask,
         NULL, NULL, MQTT_TASK_STACK_SIZE, MQTT_TASK_PRIORITY, 0, 0, MQTT_TASK_NAME);
 
+    OS_Sleep(3000);
+    audioTaskHandle = OS_CreateTask(AudioTask,
+        NULL, NULL, AUDIO_TASK_STACK_SIZE, AUDIO_TASK_PRIORITY, 0, 0, AUDIO_TASK_NAME);
 
     while(1)
     {

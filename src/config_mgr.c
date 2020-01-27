@@ -56,7 +56,7 @@ E_FAULT_CODE parserAudioConfig(char* data, AudioConfig_T * audioconfig)
         }
         for(i = 0; i < AUDIO_MAX_NUMBER; i++)
         {
-            if(i == atoi(index))
+            if(i == atoi(index->valuestring))
             {
                 audioconfig->audioInfo[i].index = atoi(index->valuestring);
                 strncpy(audioconfig->audioInfo[i].AudioName, TF_AUDIO_PATH, AUDIO_NAME_MAX_LEN);

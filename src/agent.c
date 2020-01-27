@@ -2,18 +2,14 @@
 #include "gps_task.h"
 #include "sys_config.h"
 #include "api_debug.h"
+#include "api_os.h"
 #include "cJSON.h"
+#include "audio_task.h"
 
 #define MQTT_COMMAND_TYPE "command_type"
 #define MQTT_COMMAND_TYPE_PLAY_AUDIO "play_audio"
 
 #define MQTT_COMMAND_CONTENT "command_content"
-
-typedef struct AudioControl_Tag{
-    uint8_t index;
-    uint8_t volume;
-    uint8_t isLoop;
-}AudioControl_T;
 
 uint32_t package_number = 0;
 typedef struct DevInfo_Tag
@@ -57,9 +53,10 @@ char* getDevInfoJsonStr()
     return &buffer[0];
 }
 
+AudioControl_T g_audioControl;
+
 E_FAULT_CODE getAudioControl(char *command_content)
 {
-    AudioControl_T audioControl;
     if(command_content ==NULL)
     {
         return RET_NULL_POINTER;
@@ -80,12 +77,22 @@ E_FAULT_CODE getAudioControl(char *command_content)
         return RET_NULL_POINTER;
     }
 
-    audioControl.index = atoi(index->valuestring);
-    audioControl.volume = atoi(volume->valuestring);
-    audioControl.isLoop = atoi(isLoop->valuestring);
+    g_audioControl.index = atoi(index->valuestring);
+    g_audioControl.volume = atoi(volume->valuestring);
+    g_audioControl.isLoop = atoi(isLoop->valuestring);
 
-    Trace(1, "Get Audio Control Success, index = %d, volume = %d, isLoop = %d", audioControl.index, audioControl.volume, audioControl.isLoop);
-  
+    Trace(1, "Get Audio Control Success, index = %d, volume = %d, isLoop = %d isLoop = %s", g_audioControl.index, g_audioControl.volume, g_audioControl.isLoop, isLoop->valuestring);
+    Audio_Event_t* event = (Audio_Event_t*)OS_Malloc(sizeof(Audio_Event_t));
+    if(!event)
+    {
+        cJSON_Delete(cj2);
+        Trace(1,"Audio no memory");
+        return ;
+    }
+    event->id = AUDIO_EVENT_PLAY;
+    event->audioControl = &g_audioControl;
+    OS_SendEvent(audioTaskHandle,event,OS_TIME_OUT_WAIT_FOREVER,OS_EVENT_PRI_NORMAL);
+    cJSON_Delete(cj2);
     return RET_OK;
     
 }
