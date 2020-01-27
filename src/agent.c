@@ -1,6 +1,19 @@
 #include "agent.h"
 #include "gps_task.h"
 #include "sys_config.h"
+#include "api_debug.h"
+#include "cJSON.h"
+
+#define MQTT_COMMAND_TYPE "command_type"
+#define MQTT_COMMAND_TYPE_PLAY_AUDIO "play_audio"
+
+#define MQTT_COMMAND_CONTENT "command_content"
+
+typedef struct AudioControl_Tag{
+    uint8_t index;
+    uint8_t volume;
+    uint8_t isLoop;
+}AudioControl_T;
 
 uint32_t package_number = 0;
 typedef struct DevInfo_Tag
@@ -42,24 +55,84 @@ char* getDevInfoJsonStr()
     createDevInfoJsonStr(&devinfo);
     package_number++;
     return &buffer[0];
-}  
+}
+
+E_FAULT_CODE getAudioControl(char *command_content)
+{
+    AudioControl_T audioControl;
+    if(command_content ==NULL)
+    {
+        return RET_NULL_POINTER;
+    }
+
+    cJSON * cj2 = cJSON_Parse(command_content);
+    if(cj2 == NULL){
+        Trace(1,"Get Json Fialed");
+        return RET_NULL_POINTER;
+    }
+
+    cJSON *index = (cJSON_GetObjectItem(cj2, "index"));
+    cJSON *volume = (cJSON_GetObjectItem(cj2, "volume"));
+    cJSON* isLoop = (cJSON_GetObjectItem(cj2, "isLoop"));
+
+    if(index == NULL || volume == NULL || isLoop == NULL )
+    {
+        return RET_NULL_POINTER;
+    }
+
+    audioControl.index = atoi(index->valuestring);
+    audioControl.volume = atoi(volume->valuestring);
+    audioControl.isLoop = atoi(isLoop->valuestring);
+
+    Trace(1, "Get Audio Control Success, index = %d, volume = %d, isLoop = %d", audioControl.index, audioControl.volume, audioControl.isLoop);
+  
+    return RET_OK;
+    
+}
+
+E_FAULT_CODE parserGPSCommand(char* command_type, char* command_content)
+{
+    if(command_type == NULL || command_content == NULL)
+    {
+        return RET_NULL_POINTER;
+    }
+
+    if(!strcmp(command_type, MQTT_COMMAND_TYPE_PLAY_AUDIO))
+    {
+        Trace(1, "get play audio command %s", command_content);
+        getAudioControl(command_content);
+    }else
+    {
+        Trace(1, "Not found this command %s", command_type);
+    }
+    return RET_OK;
+}
+
+E_FAULT_CODE parserJson(const char *command)
+{
+    if( command == NULL)
+    {
+        return RET_NULL_POINTER;
+    }
+
+    cJSON * cj2 = cJSON_Parse(command);
+    if(cj2 == NULL){
+        Trace(1,"Get Json Fialed");
+        return RET_NULL_POINTER;
+    }
+    cJSON* command_type = cJSON_GetObjectItem(cj2, MQTT_COMMAND_TYPE);
+    cJSON* command_content = cJSON_GetObjectItem(cj2, MQTT_COMMAND_CONTENT);
+    if(command_type == NULL || command_content == NULL)
+    {
+        cJSON_Delete(cj2);
+        return RET_NULL_POINTER;
+    }
+
+    parserGPSCommand(command_type->valuestring, command_content->valuestring);
+
+    cJSON_Delete(cj2);
+    return RET_OK;
+
+}
 
 
-
-    // cJSON * root =  cJSON_CreateObject();
-    // cJSON * item =  cJSON_CreateObject();
-
-    // cJSON_AddItemToObject(root, "reported", item);//root节点下添加reported节点
-    // cJSON_AddItemToObject(item, "version", cJSON_CreateString("1.0"));
-    // cJSON_AddItemToObject(item, "serial_number", cJSON_CreateString("20200119"));
-    // cJSON_AddItemToObject(item, "package_number", cJSON_CreateNumber(0));
-    // cJSON_AddItemToObject(item, "date", cJSON_CreateString("20200119 12:00:00"));
-    // cJSON_AddItemToObject(item, "longitude", cJSON_CreateString("120.1"));
-    // cJSON_AddItemToObject(item, "latitude", cJSON_CreateString("23.12"));
-    // cJSON_AddItemToObject(item, "altitude", cJSON_CreateString("12"));
-    // cJSON_AddItemToObject(item, "speed", cJSON_CreateString("10"));
-    // cJSON_AddItemToObject(item, "direction", cJSON_CreateNumber(0));
-    // cJSON_AddItemToObject(item, "battery", cJSON_CreateString("100"));
-    // cJSON_AddItemToObject(item, "fault_code", cJSON_CreateNumber(0));
-
-    // return cJSON_Print(root);

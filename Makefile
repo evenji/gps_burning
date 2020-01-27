@@ -13,6 +13,7 @@ LOCAL_ADD_INCLUDE := include\
                     include/std_inc \
                     include/api_inc \
                     libs/gps/minmea/src \
+                     libs/cjson/src \
 
 # Set this to any non-null string to signal a module which 
 # generates a binary (must contain a "main" entry point). 

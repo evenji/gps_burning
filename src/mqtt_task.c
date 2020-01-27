@@ -12,6 +12,7 @@
 
 #include "mqtt_task.h"
 #include "agent.h"
+#include "fault_code.h"
 
 HANDLE MqttTaskHandle = NULL;
 
@@ -28,6 +29,8 @@ void OnMqttReceiedData(void* arg, const uint8_t* data, uint16_t len, MQTT_Flags_
     Trace(1,"MQTT recieved publish data,  length:%d,data:%s",len,data);
     if(flags == MQTT_FLAG_DATA_LAST)
         Trace(1,"MQTT data is last frame");
+    E_FAULT_CODE ret = parserJson(data);
+    Trace(1, "parser GPS command status: %d", ret);
 }
 
  void OnMqttSubscribed(void* arg, MQTT_Error_t err)
@@ -102,12 +105,12 @@ void SecondTaskEventDispatch(MQTT_Event_t* pEvent)
     {
         case MQTT_EVENT_CONNECTED:
             mqttStatus = MQTT_STATUS_CONNECTED;
-            // Trace(1,"MQTT connected, now subscribe topic:%s",SUBSCRIBE_TOPIC);
-            // MQTT_Error_t err;
-            // MQTT_SetInPubCallback(pEvent->client, OnMqttReceived, OnMqttReceiedData, NULL);
-            // err = MQTT_Subscribe(pEvent->client,SUBSCRIBE_TOPIC,2,OnMqttSubscribed,(void*)SUBSCRIBE_TOPIC);
-            // if(err != MQTT_ERROR_NONE)
-            //     Trace(1,"MQTT subscribe error, error code:%d",err);
+            Trace(1,"1MQTT connected, now subscribe topic:%s",SUBSCRIBE_TOPIC);
+            MQTT_Error_t err;
+            MQTT_SetInPubCallback(pEvent->client, OnMqttReceived, OnMqttReceiedData, NULL);
+            err = MQTT_Subscribe(pEvent->client,SUBSCRIBE_TOPIC,0,OnMqttSubscribed,(void*)SUBSCRIBE_TOPIC);
+            if(err != MQTT_ERROR_NONE)
+                Trace(1,"MQTT subscribe error, error code:%d",err);
             StartTimerPublish(PUBLISH_INTERVAL_GPS,pEvent->client);
             break;
         case MQTT_EVENT_DISCONNECTED:

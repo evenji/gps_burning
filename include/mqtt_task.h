@@ -23,14 +23,14 @@ typedef enum{
 #define MQTT_TASK_PRIORITY      2
 #define MQTT_TASK_NAME          "MQTT Task"
 
-#define BROKER_IP  "k5nahpt.mqtt.iot.gz.baidubce.com"
+#define BROKER_IP  "9cexqiy.mqtt.iot.gz.baidubce.com"
 #define BROKER_PORT 1883
 #define CLIENT_ID  "Neucrack1"
-#define CLIENT_USER "k5nahpt/gps_monitor_001"
-#define CLIENT_PASS "tak77yr89actiepn"
-#define SUBSCRIBE_TOPIC "$neucrack/app"
-#define PUBLISH_TOPIC   "$baidu/iot/shadow/gps_monitor_001/update"
-#define PUBLISH_INTERVAL_GPS 1000 //10s
+#define CLIENT_USER "9cexqiy/client"
+#define CLIENT_PASS "AnaRsIdLcOLh0TXs"
+#define SUBSCRIBE_TOPIC "gps_command"
+#define PUBLISH_TOPIC   "gps_info"
+#define PUBLISH_INTERVAL_GPS 5000 //10s
 #define PUBLISH_PAYLOEAD "{\"reported\":{\"version\":\"1.0\",\"serial_number\":\"20200119\",\"package_number\":0,\"date\":\"20200119 12:00:00\",\"longitude\":\"120.1\",\"latitude\":\"23.12\",\"altitude\":\"12\",\"speed\":\"10\",\"direction\":0,\"battery\":\"100\",\"fault_code\":0}}"
 
 extern HANDLE MqttTaskHandle;

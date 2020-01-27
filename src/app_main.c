@@ -31,7 +31,7 @@ void EventDispatch(API_Event_t* pEvent)
 {
     switch(pEvent->id)
     {
-        case API_EVENT_ID_NETWORK_REGISTERED_HOME:
+        case API_EVENT_ID_NETWORK_REGISTERED_HOME: 
         case API_EVENT_ID_NETWORK_REGISTERED_ROAMING:
             Trace(1,"gprs register complete");
             setIsGPRSReady(true);
