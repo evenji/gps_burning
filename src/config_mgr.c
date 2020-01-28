@@ -90,5 +90,5 @@ E_FAULT_CODE getAudioConfig(AudioConfig_T * audioconfig)
     if(ret <= 0)
         return RET_READ_FILE_FAILED;
 
-    return parserAudioConfig("{\"audio_lists\":[{\"index\":\"0\",\"title\":\"test1.mp3\"},{\"index\":\"1\",\"title\":\"test2.mp3\"},{\"index\":\"2\",\"title\":\"test3.mp3\"}]}}", audioconfig);
+    return parserAudioConfig(readbuf, audioconfig);
 }

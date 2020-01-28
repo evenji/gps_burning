@@ -22,6 +22,7 @@
 #include "gps_task.h"
 #include "mqtt_task.h"
 #include "audio_task.h"
+#include "sensor_task.h"
 
 #define AppMain_TASK_STACK_SIZE    (1024 * 2)
 #define AppMain_TASK_PRIORITY      1 
@@ -94,6 +95,10 @@ void AppMainTask(void *pData)
 {
     API_Event_t* event=NULL;
     
+    OS_CreateTask(SensorTask,
+            NULL, NULL, SENSOR_TASK_STACK_SIZE, SENSOR_TASK_PRIORITY, 0, 0, SENSOR_TASK_NAME);
+    OS_Sleep(500);
+
     OS_CreateTask(gps_Task,
             NULL, NULL, GPS_TASK_STACK_SIZE, GPS_TASK_PRIORITY, 0, 0, GPS_TASK_NAME);
 

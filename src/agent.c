@@ -5,6 +5,7 @@
 #include "api_os.h"
 #include "cJSON.h"
 #include "audio_task.h"
+#include "sensor_task.h"
 
 #define MQTT_COMMAND_TYPE "command_type"
 #define MQTT_COMMAND_TYPE_PLAY_AUDIO "play_audio"
@@ -41,12 +42,15 @@ char * createDevInfoJsonStr(DevInfo_T *info)
 char* getDevInfoJsonStr()
 {
     DevInfo_T devinfo;
+    char batterystr[8];
     strcpy(devinfo.version, SOFTWARE_VERSION);
     strcpy(devinfo.sn, SERIAL_NUMBER);
     devinfo.package_number = package_number;
     getGPSDate(devinfo.date);
     getGPSInfo(devinfo.longitude, devinfo.latitude, devinfo.altitude, devinfo.speed, &(devinfo.direction));
-    strcpy(devinfo.battery, "100");
+
+    sprintf(batterystr, "%d", g_sensorInfo.battery);
+    strcpy(devinfo.battery, batterystr);
     devinfo.fault_code = 0;
     createDevInfoJsonStr(&devinfo);
     package_number++;
