@@ -9,6 +9,7 @@
 #include "api_event.h"
 #include "api_hal_adc.h"
 #include "sensor_task.h"
+#include "altitude_sensor.h"
 
 #define BATTERY_VOLTAGE_MV_MAX 4150
 #define BATTERY_VOLTAGE_MV_MIN 3000
@@ -44,11 +45,14 @@ void SensorTask(void *pData)
         .samplePeriod = ADC_SAMPLE_PERIOD_100MS
     };
     ADC_Init(config);
+    altitudeInit();
 
     Trace(1, "Sensor Task");
     while(1)
     {
         getBatteryInfo();
-        OS_Sleep(10000);
+        g_sensorInfo.altitude = getAltitude();
+        Trace(1, "relative altitude = %f", g_sensorInfo.altitude);
+        OS_Sleep(3000);
     }
 }

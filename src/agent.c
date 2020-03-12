@@ -43,11 +43,13 @@ char* getDevInfoJsonStr()
 {
     DevInfo_T devinfo;
     char batterystr[8];
+    char altitudestr[8];
+    sprintf(altitudestr, "%.1f", g_sensorInfo.altitude);
     strcpy(devinfo.version, SOFTWARE_VERSION);
     strcpy(devinfo.sn, SERIAL_NUMBER);
     devinfo.package_number = package_number;
     getGPSDate(devinfo.date);
-    getGPSInfo(devinfo.longitude, devinfo.latitude, devinfo.altitude, devinfo.speed, &(devinfo.direction));
+    getGPSInfo(devinfo.longitude, devinfo.latitude, altitudestr, devinfo.speed, &(devinfo.direction));
 
     sprintf(batterystr, "%d", g_sensorInfo.battery);
     strcpy(devinfo.battery, batterystr);

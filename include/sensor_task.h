@@ -10,6 +10,7 @@
 typedef struct SensorInfo_Tag
 {
     uint8_t battery;
+    float altitude;
 }SensorInfo_T;
 
 void SensorTask(void *pData);
