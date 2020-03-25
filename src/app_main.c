@@ -69,7 +69,8 @@ void EventDispatch(API_Event_t* pEvent)
 
         case API_EVENT_ID_NETWORK_ACTIVATED:
             Trace(1,"network activate success.."); 
-            OS_ReleaseSemaphore(semMqttStart);
+            //OS_ReleaseSemaphore(semMqttStart);
+            isStart = true;
             break;
         
         case API_EVENT_ID_SOCKET_CONNECTED:
@@ -91,25 +92,56 @@ void EventDispatch(API_Event_t* pEvent)
 }
 
 
+#define KEEP_ALIVE_TASK_STACK_SIZE    (1024 * 2)
+#define KEEP_ALIVE_TASK_PRIORITY      6
+#define KEEP_ALIVE_TASK_NAME "Keep alive Task"
+void KeepAliveTask(void *pData)
+{
+    while(1)
+    {
+        if(mqttStatus == MQTT_STATUS_NEED_RESTART)
+        {
+            Trace(1, "Restart Mqtt Taskq");
+            OS_StopTask(MqttTaskHandle);
+            Trace(1, "stop Mqtt Taskq");
+            bool ret = OS_DeleteTask(MqttTaskHandle);
+            Trace(1, "Restart Mqtt Task status = %d", ret);
+            OS_Sleep(100);
+            Trace(1,"network attach again");
+
+            OS_Sleep(3000);
+            MqttTaskHandle = OS_CreateTask(MqttTask,
+                NULL, NULL, MQTT_TASK_STACK_SIZE, MQTT_TASK_PRIORITY, 0, 0, MQTT_TASK_NAME);
+        }
+        OS_Sleep(1500);
+    }
+}
+
 void AppMainTask(void *pData)
 {
     API_Event_t* event=NULL;
     
-    OS_CreateTask(SensorTask,
-            NULL, NULL, SENSOR_TASK_STACK_SIZE, SENSOR_TASK_PRIORITY, 0, 0, SENSOR_TASK_NAME);
-    OS_Sleep(500);
-
     OS_CreateTask(gps_Task,
             NULL, NULL, GPS_TASK_STACK_SIZE, GPS_TASK_PRIORITY, 0, 0, GPS_TASK_NAME);
 
     OS_Sleep(5000);
 
+    
+
     MqttTaskHandle = OS_CreateTask(MqttTask,
         NULL, NULL, MQTT_TASK_STACK_SIZE, MQTT_TASK_PRIORITY, 0, 0, MQTT_TASK_NAME);
 
-    OS_Sleep(3000);
-    audioTaskHandle = OS_CreateTask(AudioTask,
-        NULL, NULL, AUDIO_TASK_STACK_SIZE, AUDIO_TASK_PRIORITY, 0, 0, AUDIO_TASK_NAME);
+    // OS_Sleep(3000);
+    // audioTaskHandle = OS_CreateTask(AudioTask,
+    //     NULL, NULL, AUDIO_TASK_STACK_SIZE, AUDIO_TASK_PRIORITY, 0, 0, AUDIO_TASK_NAME);
+        
+    OS_CreateTask(SensorTask,
+            NULL, NULL, SENSOR_TASK_STACK_SIZE, SENSOR_TASK_PRIORITY, 0, 0, SENSOR_TASK_NAME);
+    OS_Sleep(500);
+
+OS_Sleep(300);
+    OS_CreateTask(KeepAliveTask,
+        NULL, NULL, KEEP_ALIVE_TASK_STACK_SIZE, KEEP_ALIVE_TASK_PRIORITY, 0, 0, AUDIO_TASK_NAME);
 
     while(1)
     {

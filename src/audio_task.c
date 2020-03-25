@@ -129,6 +129,7 @@ void AudioTask(void *pData)
     else
     {
         Trace(1, "Audio: get audio config failed");
+        return;
     }
     
     Trace(1, "Audio Task");

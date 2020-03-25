@@ -12,6 +12,8 @@
 
 #define MQTT_COMMAND_CONTENT "command_content"
 
+extern int reStartTimes;
+
 uint32_t package_number = 0;
 typedef struct DevInfo_Tag
 {
@@ -43,17 +45,26 @@ char* getDevInfoJsonStr()
 {
     DevInfo_T devinfo;
     char batterystr[8];
-    char altitudestr[8];
-    sprintf(altitudestr, "%.1f", g_sensorInfo.altitude);
+    E_FAULT_CODE ret_gps;
     strcpy(devinfo.version, SOFTWARE_VERSION);
     strcpy(devinfo.sn, SERIAL_NUMBER);
     devinfo.package_number = package_number;
-    getGPSDate(devinfo.date);
-    getGPSInfo(devinfo.longitude, devinfo.latitude, altitudestr, devinfo.speed, &(devinfo.direction));
+    ret_gps = getGPSDate(devinfo.date);
+    getGPSInfo(devinfo.longitude, devinfo.latitude, devinfo.altitude, devinfo.speed, &(devinfo.direction));
 
     sprintf(batterystr, "%d", g_sensorInfo.battery);
+    sprintf(devinfo.altitude, "%.1f", g_sensorInfo.altitude);
     strcpy(devinfo.battery, batterystr);
-    devinfo.fault_code = 0;
+    //Trace(1,"Get GPS status = %d", ret_gps);
+    // if(ret_gps == RET_GPS_NO_SIGNAL)
+    // {
+    //     devinfo.fault_code = RET_GPS_NO_SIGNAL;
+    // }else
+    // {
+    //     devinfo.fault_code = 0;
+    // }
+    devinfo.fault_code = reStartTimes;
+    //Trace(1,"Get devinfo.fault_code = %d", devinfo.fault_code);
     createDevInfoJsonStr(&devinfo);
     package_number++;
     return &buffer[0];

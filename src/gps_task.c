@@ -17,14 +17,31 @@
 bool isGpsOn = true;
 GPS_Info_t* gpsInfo = NULL;
 
-void getGPSDate(char *date)
+E_FAULT_CODE getGPSDate(char *date)
 {
     if(NULL != gpsInfo)
     {
+        
         sprintf(date, "20%d%02d%02d %02d:%02d:%02d", 
                                     gpsInfo->rmc.date.year, gpsInfo->rmc.date.month, gpsInfo->rmc.date.day,
                                     gpsInfo->rmc.time.hours, gpsInfo->rmc.time.minutes, gpsInfo->rmc.time.seconds);
+
+        Trace(1,"GPS is vaild = %d", gpsInfo->rmc.valid);  
+        if(gpsInfo->rmc.valid == 0)
+        {
+            return RET_GPS_NO_SIGNAL;
+        }
+        else
+        {
+            return RET_OK;   
+        }
+                               
     }
+    else
+    {
+        return RET_NULL_POINTER;
+    }
+    
 }
 
 void getGPSInfo(char* longitude, char* latitude, char *altitude, char* speed, int* direction)

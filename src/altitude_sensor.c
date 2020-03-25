@@ -102,7 +102,7 @@ long getAvePressure()
 float pressure2Altitude(long pressure)
 {
     float altitude = 0.0f;
-    altitude = (760.0 - pressure*0.75) * 12;
+    altitude = (760.0 - pressure*0.75*0.01) * 12;
     return altitude;
 }
 
@@ -110,6 +110,7 @@ float ZorePointcalibration()
 {
     float calibration_altitude = 0.0f;
     long avePressure = getAvePressure();
+    Trace(1,"Av altitude = %d",avePressure);
     calibration_altitude = pressure2Altitude(avePressure);
     return calibration_altitude;
 }
@@ -117,12 +118,17 @@ float ZorePointcalibration()
 float getAltitude()
 {
     float currentAltitue = pressure2Altitude(getAvePressure());
-    Trace(1,"current currentAltitue = %f",currentAltitue);
+    Trace(1,"current currentAltitue = %f, bmp280 calibration value = %f",currentAltitue, g_calibration_altitude);
     return (currentAltitue - g_calibration_altitude);
 }
 
 void altitudeInit()
 {
+    I2C_Config_t config;
+
+    config.freq = I2C_FREQ_100K;
+    I2C_Init(I2C_BMP280, config);
+
     unsigned char data = 0xb6;
     
     unsigned char code = 0;
@@ -147,6 +153,7 @@ void altitudeInit()
     dig_P8 = bmp280_MultipleReadTwo(0x9C);
     dig_P9 = bmp280_MultipleReadTwo(0x9E);
 
+    OS_Sleep(100);
     g_calibration_altitude = ZorePointcalibration();
     Trace(1,"bmp280 calibration value = %f",g_calibration_altitude);
 }

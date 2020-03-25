@@ -17,7 +17,12 @@
 HANDLE MqttTaskHandle = NULL;
 
 HANDLE semMqttStart = NULL;
+
+int reStartTimes = 0;
+
 MQTT_Status_t mqttStatus = MQTT_STATUS_DISCONNECTED;
+
+bool isStart = false;
 
 void OnMqttReceived(void* arg, const char* topic, uint32_t payloadLen)
 {
@@ -74,7 +79,15 @@ void OnPublish(void* arg, MQTT_Error_t err)
     if(err == MQTT_ERROR_NONE)
         Trace(1,"MQTT publish success");
     else
+    {
         Trace(1,"MQTT publish error, error code:%d",err);
+        reStartTimes++;
+        if(reStartTimes == 6)
+        {
+            
+            reStartTimes = 0;
+        }
+    }
 }
 
 void OnTimerPublish(void* param)
@@ -114,7 +127,8 @@ void SecondTaskEventDispatch(MQTT_Event_t* pEvent)
             StartTimerPublish(PUBLISH_INTERVAL_GPS,pEvent->client);
             break;
         case MQTT_EVENT_DISCONNECTED:
-            mqttStatus = MQTT_STATUS_DISCONNECTED;
+            //MQTT_Disconnect
+            mqttStatus = MQTT_STATUS_NEED_RESTART;
             break;
         default:
             break;
@@ -124,9 +138,18 @@ void SecondTaskEventDispatch(MQTT_Event_t* pEvent)
 void MqttTask(void *pData)
 {
     MQTT_Event_t* event=NULL;
-    semMqttStart = OS_CreateSemaphore(0);
-    OS_WaitForSemaphore(semMqttStart,OS_WAIT_FOREVER);
-    OS_DeleteSemaphore(semMqttStart);
+    mqttStatus = MQTT_STATUS_START_CONNECT;
+    Trace(1,"start mqtt test start");
+    // semMqttStart = OS_CreateSemaphore(0);
+    // OS_WaitForSemaphore(semMqttStart,OS_WAIT_FOREVER);
+    // OS_DeleteSemaphore(semMqttStart);
+    //OS_Sleep(10000);
+    while(isStart == false)
+    {
+        OS_Sleep(1000);
+        Trace(1,"waiting...");
+    }
+    reStartTimes++;
     Trace(1,"start mqtt test");
     MQTT_Client_t* client = MQTT_ClientNew();
     MQTT_Connect_Info_t ci;
