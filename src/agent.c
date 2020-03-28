@@ -13,6 +13,7 @@
 #define MQTT_COMMAND_CONTENT "command_content"
 
 extern int reStartTimes;
+extern int restartCnt;
 
 uint32_t package_number = 0;
 typedef struct DevInfo_Tag
@@ -63,7 +64,7 @@ char* getDevInfoJsonStr()
     // {
     //     devinfo.fault_code = 0;
     // }
-    devinfo.fault_code = reStartTimes;
+    devinfo.fault_code = restartCnt;
     //Trace(1,"Get devinfo.fault_code = %d", devinfo.fault_code);
     createDevInfoJsonStr(&devinfo);
     package_number++;

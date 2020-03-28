@@ -19,10 +19,18 @@ HANDLE MqttTaskHandle = NULL;
 HANDLE semMqttStart = NULL;
 
 int reStartTimes = 0;
+int restartCnt = 0;
+
+MQTT_Client_t* g_client = NULL;
 
 MQTT_Status_t mqttStatus = MQTT_STATUS_DISCONNECTED;
 
 bool isStart = false;
+
+int flagPublish = 1;
+
+
+void MqttInit();
 
 void OnMqttReceived(void* arg, const char* topic, uint32_t payloadLen)
 {
@@ -76,17 +84,38 @@ void OnMqttConnection(MQTT_Client_t *client, void *arg, MQTT_Connection_Status_t
 void StartTimerPublish(uint32_t interval,MQTT_Client_t* client);
 void OnPublish(void* arg, MQTT_Error_t err)
 {
+    MQTT_Event_t* event = (MQTT_Event_t*)OS_Malloc(sizeof(MQTT_Event_t));
+    if(!event)
+    {
+        Trace(1,"MQTT no memory");
+        return ;
+    }
+
     if(err == MQTT_ERROR_NONE)
+    {
         Trace(1,"MQTT publish success");
+
+            //StartTimerPublish(PUBLISH_INTERVAL_GPS,g_client); 
+        //reStartTimes = 0;
+    }
     else
     {
         Trace(1,"MQTT publish error, error code:%d",err);
         reStartTimes++;
-        if(reStartTimes == 6)
+        restartCnt++;
+        if(reStartTimes == 10)
         {
-            
+            event->id = MQTT_EVENT_DISCONNECTED;
+            event->client = g_client;
+            OS_SendEvent(MqttTaskHandle,event,OS_TIME_OUT_WAIT_FOREVER,OS_EVENT_PRI_NORMAL);
             reStartTimes = 0;
+            flagPublish = 0;
         }
+        else
+        {
+            //StartTimerPublish(PUBLISH_INTERVAL_GPS,g_client);
+        }
+        
     }
 }
 
@@ -101,9 +130,13 @@ void OnTimerPublish(void* param)
     }
     char* publish_payload = getDevInfoJsonStr();
     Trace(1,"MQTT OnTimerPublish payload = %s", publish_payload);
-    err = MQTT_Publish(client,PUBLISH_TOPIC,publish_payload,strlen(publish_payload),1,0,0,OnPublish,NULL);
-    if(err != MQTT_ERROR_NONE)
-        Trace(1,"MQTT publish error, error code:%d",err);
+    if(flagPublish)
+    {
+        err = MQTT_Publish(client,PUBLISH_TOPIC,publish_payload,strlen(publish_payload),1,0,0,OnPublish,NULL);
+        if(err != MQTT_ERROR_NONE)
+            Trace(1,"2222MQTT publish error, error code:%d",err);
+    }
+
     StartTimerPublish(PUBLISH_INTERVAL_GPS,client);
 }
 
@@ -128,6 +161,9 @@ void SecondTaskEventDispatch(MQTT_Event_t* pEvent)
             break;
         case MQTT_EVENT_DISCONNECTED:
             //MQTT_Disconnect
+            MQTT_Disconnect(g_client);
+            OS_Sleep(1000);
+            MqttInit();
             mqttStatus = MQTT_STATUS_NEED_RESTART;
             break;
         default:
@@ -135,9 +171,9 @@ void SecondTaskEventDispatch(MQTT_Event_t* pEvent)
     }
 }
 
-void MqttTask(void *pData)
+void MqttInit()
 {
-    MQTT_Event_t* event=NULL;
+    
     mqttStatus = MQTT_STATUS_START_CONNECT;
     Trace(1,"start mqtt test start");
     // semMqttStart = OS_CreateSemaphore(0);
@@ -151,7 +187,7 @@ void MqttTask(void *pData)
     }
     reStartTimes++;
     Trace(1,"start mqtt test");
-    MQTT_Client_t* client = MQTT_ClientNew();
+    g_client = MQTT_ClientNew();
     MQTT_Connect_Info_t ci;
     MQTT_Error_t err;
     memset(&ci,0,sizeof(MQTT_Connect_Info_t));
@@ -161,10 +197,17 @@ void MqttTask(void *pData)
     ci.keep_alive = 60;
     ci.clean_session = 1;
     ci.use_ssl = false;
+    flagPublish = 1;
 
-    err = MQTT_Connect(client,BROKER_IP,BROKER_PORT,OnMqttConnection,NULL,&ci);
+    err = MQTT_Connect(g_client,BROKER_IP,BROKER_PORT,OnMqttConnection,NULL,&ci);
     if(err != MQTT_ERROR_NONE)
         Trace(1,"MQTT connect fail,error code:%d",err);
+}
+
+void MqttTask(void *pData)
+{
+    MQTT_Event_t* event=NULL;
+    MqttInit();
     
     while(1)
     {

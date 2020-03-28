@@ -139,9 +139,9 @@ void AppMainTask(void *pData)
             NULL, NULL, SENSOR_TASK_STACK_SIZE, SENSOR_TASK_PRIORITY, 0, 0, SENSOR_TASK_NAME);
     OS_Sleep(500);
 
-OS_Sleep(300);
-    OS_CreateTask(KeepAliveTask,
-        NULL, NULL, KEEP_ALIVE_TASK_STACK_SIZE, KEEP_ALIVE_TASK_PRIORITY, 0, 0, AUDIO_TASK_NAME);
+// OS_Sleep(300);
+//     OS_CreateTask(KeepAliveTask,
+//         NULL, NULL, KEEP_ALIVE_TASK_STACK_SIZE, KEEP_ALIVE_TASK_PRIORITY, 0, 0, AUDIO_TASK_NAME);
 
     while(1)
     {
