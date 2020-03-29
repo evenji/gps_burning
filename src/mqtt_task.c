@@ -29,6 +29,7 @@ bool isStart = false;
 
 int flagPublish = 1;
 
+int retErrorCnt = 0;
 
 void MqttInit();
 
@@ -102,14 +103,15 @@ void OnPublish(void* arg, MQTT_Error_t err)
     {
         Trace(1,"MQTT publish error, error code:%d",err);
         reStartTimes++;
-        restartCnt++;
         if(reStartTimes == 10)
         {
+            restartCnt++;
             event->id = MQTT_EVENT_DISCONNECTED;
             event->client = g_client;
             OS_SendEvent(MqttTaskHandle,event,OS_TIME_OUT_WAIT_FOREVER,OS_EVENT_PRI_NORMAL);
             reStartTimes = 0;
             flagPublish = 0;
+            retErrorCnt = 0;
         }
         else
         {
@@ -118,11 +120,18 @@ void OnPublish(void* arg, MQTT_Error_t err)
         
     }
 }
-
 void OnTimerPublish(void* param)
 {
     MQTT_Error_t err;
     MQTT_Client_t* client = (MQTT_Client_t*)param;
+
+    MQTT_Event_t* event = (MQTT_Event_t*)OS_Malloc(sizeof(MQTT_Event_t));
+    if(!event)
+    {
+        Trace(1,"MQTT no memory");
+        return ;
+    }
+
     if(mqttStatus != MQTT_STATUS_CONNECTED)
     {
         Trace(1,"MQTT not connected to broker! can not publish");
@@ -134,7 +143,24 @@ void OnTimerPublish(void* param)
     {
         err = MQTT_Publish(client,PUBLISH_TOPIC,publish_payload,strlen(publish_payload),1,0,0,OnPublish,NULL);
         if(err != MQTT_ERROR_NONE)
+        {
             Trace(1,"2222MQTT publish error, error code:%d",err);
+            retErrorCnt++;
+            if( retErrorCnt == 15 )
+            {
+                restartCnt++;
+                event->id = MQTT_EVENT_DISCONNECTED;
+                event->client = g_client;
+                OS_SendEvent(MqttTaskHandle,event,OS_TIME_OUT_WAIT_FOREVER,OS_EVENT_PRI_NORMAL);
+                reStartTimes = 0;
+                flagPublish = 0;
+                retErrorCnt = 0;
+            }
+        }else
+        {
+            retErrorCnt = 0;
+        }
+        
     }
 
     StartTimerPublish(PUBLISH_INTERVAL_GPS,client);

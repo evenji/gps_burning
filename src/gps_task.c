@@ -27,7 +27,7 @@ E_FAULT_CODE getGPSDate(char *date)
                                     gpsInfo->rmc.time.hours, gpsInfo->rmc.time.minutes, gpsInfo->rmc.time.seconds);
 
         Trace(1,"GPS is vaild = %d", gpsInfo->rmc.valid);  
-        if(gpsInfo->rmc.valid == 0)
+        if(gpsInfo->rmc.date.year == 80 )
         {
             return RET_GPS_NO_SIGNAL;
         }
