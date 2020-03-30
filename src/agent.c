@@ -25,20 +25,21 @@ typedef struct DevInfo_Tag
     char longitude[16];
     char latitude[16];
     char altitude[8];
+    uint32_t stars_tracked;
     char speed[8];
     int direction;
     char battery[8];
     uint32_t fault_code;
 }DevInfo_T;
 
-char* devInfoJson = "{\"reported\":{\"version\":\"%s\",\"serial_number\":\"%s\",\"package_number\":%d,\"date\":\"%s\",\"longitude\":\"%s\",\"latitude\":\"%s\",\"altitude\":\"%s\",\"speed\":\"%s\",\"direction\":%d,\"battery\":\"%s\",\"fault_code\":%d}}";
+char* devInfoJson = "{\"reported\":{\"version\":\"%s\",\"serial_number\":\"%s\",\"package_number\":%d,\"date\":\"%s\",\"longitude\":\"%s\",\"latitude\":\"%s\",\"altitude\":\"%s\",\"stars_tracked\":\"%d\",\"speed\":\"%s\",\"direction\":%d,\"battery\":\"%s\",\"fault_code\":%d}}";
 
 uint8_t buffer[300];
 char * createDevInfoJsonStr(DevInfo_T *info)
 {    
     snprintf(buffer, sizeof(buffer), devInfoJson, info->version, 
                 info->sn, info->package_number, info->date,info->longitude,info->latitude,
-                info->altitude, info->speed, info->direction,info->battery, info->fault_code);
+                info->altitude, info->stars_tracked, info->speed, info->direction,info->battery, info->fault_code);
     return &buffer[0];
 }
 
@@ -51,7 +52,7 @@ char* getDevInfoJsonStr()
     strcpy(devinfo.sn, SERIAL_NUMBER);
     devinfo.package_number = package_number;
     ret_gps = getGPSDate(devinfo.date);
-    getGPSInfo(devinfo.longitude, devinfo.latitude, devinfo.altitude, devinfo.speed, &(devinfo.direction));
+    getGPSInfo(devinfo.longitude, devinfo.latitude, devinfo.altitude, devinfo.speed, &(devinfo.direction), &(devinfo.stars_tracked));
 
     sprintf(batterystr, "%d", g_sensorInfo.battery);
     sprintf(devinfo.altitude, "%.1f", g_sensorInfo.altitude);

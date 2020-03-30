@@ -12,7 +12,7 @@
 extern GPS_Info_t* gpsInfo;
 
 E_FAULT_CODE getGPSDate(char *date);
-void getGPSInfo(char* longitude, char* latitude, char *altitude, char* speed, int* direction);
+void getGPSInfo(char* longitude, char* latitude, char *altitude, char* speed, int* direction, int * stars_tracked);
 void gps_Task(void *pData);
 
 #endif

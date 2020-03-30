@@ -44,7 +44,7 @@ E_FAULT_CODE getGPSDate(char *date)
     
 }
 
-void getGPSInfo(char* longitude, char* latitude, char *altitude, char* speed, int* direction)
+void getGPSInfo(char* longitude, char* latitude, char *altitude, char* speed, int* direction, int *stars_tracked)
 {
     int temp = (int)(gpsInfo->rmc.latitude.value/gpsInfo->rmc.latitude.scale/100);
     double fLatitude = temp+(double)(gpsInfo->rmc.latitude.value - temp*gpsInfo->rmc.latitude.scale*100)/gpsInfo->rmc.latitude.scale/60.0;
@@ -80,9 +80,9 @@ void getGPSInfo(char* longitude, char* latitude, char *altitude, char* speed, in
         *direction = 0;
     }
     
+    *stars_tracked = gpsInfo->gga.satellites_tracked;
     
-    
-    
+    Trace(1,"satellites_tracked = %d", gpsInfo->gga.satellites_tracked);
     // sprintf(speed, "%f", gpsInfo->rmc.speed.value);
 }
 
