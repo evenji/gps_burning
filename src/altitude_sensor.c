@@ -19,6 +19,8 @@ short dig_P9;
 
 float g_calibration_altitude = 0.0f;
 
+#define ALLOW_ALTITUDE_CHANGE 100.0
+
 short bmp280_MultipleReadTwo(unsigned char addr)
 {
     unsigned char msb, lsb;
@@ -117,9 +119,21 @@ float ZorePointcalibration()
 
 float getAltitude()
 {
+    static float oldRelateAltitue = 0;
+    float currentRelateAltitue = 0;
     float currentAltitue = pressure2Altitude(getAvePressure());
     Trace(1,"current currentAltitue = %f, bmp280 calibration value = %f",currentAltitue, g_calibration_altitude);
-    return (currentAltitue - g_calibration_altitude);
+    currentRelateAltitue = currentAltitue - g_calibration_altitude;
+
+    if((currentRelateAltitue - oldRelateAltitue) < ALLOW_ALTITUDE_CHANGE &&
+        (currentRelateAltitue - oldRelateAltitue) > -ALLOW_ALTITUDE_CHANGE)
+    {
+        oldRelateAltitue = currentRelateAltitue;
+        return (currentRelateAltitue);
+    }else
+    {
+        return oldRelateAltitue;
+    }
 }
 
 void altitudeInit()

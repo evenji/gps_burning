@@ -25,11 +25,23 @@ typedef enum{
 #define MQTT_TASK_PRIORITY      2
 #define MQTT_TASK_NAME          "MQTT Task"
 
+//#define EVEN
+
+
+#ifdef EVEN
 #define BROKER_IP  "9cexqiy.mqtt.iot.gz.baidubce.com"
 #define BROKER_PORT 1883
 #define CLIENT_ID  "Neucrack1"
 #define CLIENT_USER "9cexqiy/client"
 #define CLIENT_PASS "AnaRsIdLcOLh0TXs"
+#else
+#define BROKER_IP  "47.97.165.160"
+#define BROKER_PORT 9210
+#define CLIENT_ID  "Neucrack1"
+#define CLIENT_USER "gpsTester"
+#define CLIENT_PASS "system"
+#endif
+
 #define SUBSCRIBE_TOPIC "gps_command"
 #define PUBLISH_TOPIC   "gps_info"
 #define PUBLISH_INTERVAL_GPS 1000 //10s

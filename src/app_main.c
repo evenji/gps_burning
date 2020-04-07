@@ -28,6 +28,8 @@
 #define AppMain_TASK_PRIORITY      1 
 HANDLE mainTaskHandle  = NULL;
 
+int16_t csq = 0;
+
 
 void EventDispatch(API_Event_t* pEvent)
 {
@@ -84,6 +86,7 @@ void EventDispatch(API_Event_t* pEvent)
 
         case API_EVENT_ID_SIGNAL_QUALITY:
             Trace(1,"CSQ:%d",pEvent->param1);
+            csq = pEvent->param1;
             break;
 
         default:
