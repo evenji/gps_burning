@@ -17,12 +17,14 @@
 #include "api_mqtt.h"
 #include "api_network.h"
 #include "api_socket.h"
+#include "api_key.h"
 #include "gps.h"
 
 #include "gps_task.h"
 #include "mqtt_task.h"
 #include "audio_task.h"
 #include "sensor_task.h"
+#include "pm_task.h"
 
 #define AppMain_TASK_STACK_SIZE    (1024 * 2)
 #define AppMain_TASK_PRIORITY      1 
@@ -88,6 +90,25 @@ void EventDispatch(API_Event_t* pEvent)
             Trace(1,"CSQ:%d",pEvent->param1);
             csq = pEvent->param1;
             break;
+        
+        case API_EVENT_ID_KEY_DOWN:
+            if(pEvent->param1 == KEY_POWER)
+            {
+                Trace(1,"power key press down now");
+                flag_shutdown_status = PM_SD_STATUS_START;
+            }
+            break;
+        case API_EVENT_ID_KEY_UP:
+            if(pEvent->param1 == KEY_POWER)
+            {
+                Trace(1,"power key release now");
+                flag_shutdown_status = PM_SD_STATUS_END;
+            }
+            break;
+
+        case API_EVENT_ID_POWER_ON:
+            powerOnCause = pEvent->param1;
+            break;
 
         default:
             break;
@@ -95,30 +116,30 @@ void EventDispatch(API_Event_t* pEvent)
 }
 
 
-#define KEEP_ALIVE_TASK_STACK_SIZE    (1024 * 2)
-#define KEEP_ALIVE_TASK_PRIORITY      6
-#define KEEP_ALIVE_TASK_NAME "Keep alive Task"
-void KeepAliveTask(void *pData)
-{
-    while(1)
-    {
-        if(mqttStatus == MQTT_STATUS_NEED_RESTART)
-        {
-            Trace(1, "Restart Mqtt Taskq");
-            OS_StopTask(MqttTaskHandle);
-            Trace(1, "stop Mqtt Taskq");
-            bool ret = OS_DeleteTask(MqttTaskHandle);
-            Trace(1, "Restart Mqtt Task status = %d", ret);
-            OS_Sleep(100);
-            Trace(1,"network attach again");
+// #define KEEP_ALIVE_TASK_STACK_SIZE    (1024 * 2)
+// #define KEEP_ALIVE_TASK_PRIORITY      6
+// #define KEEP_ALIVE_TASK_NAME "Keep alive Task"
+// void KeepAliveTask(void *pData)
+// {
+//     while(1)
+//     {
+//         if(mqttStatus == MQTT_STATUS_NEED_RESTART)
+//         {
+//             Trace(1, "Restart Mqtt Taskq");
+//             OS_StopTask(MqttTaskHandle);
+//             Trace(1, "stop Mqtt Taskq");
+//             bool ret = OS_DeleteTask(MqttTaskHandle);
+//             Trace(1, "Restart Mqtt Task status = %d", ret);
+//             OS_Sleep(100);
+//             Trace(1,"network attach again");
 
-            OS_Sleep(3000);
-            MqttTaskHandle = OS_CreateTask(MqttTask,
-                NULL, NULL, MQTT_TASK_STACK_SIZE, MQTT_TASK_PRIORITY, 0, 0, MQTT_TASK_NAME);
-        }
-        OS_Sleep(1500);
-    }
-}
+//             OS_Sleep(3000);
+//             MqttTaskHandle = OS_CreateTask(MqttTask,
+//                 NULL, NULL, MQTT_TASK_STACK_SIZE, MQTT_TASK_PRIORITY, 0, 0, MQTT_TASK_NAME);
+//         }
+//         OS_Sleep(1500);
+//     }
+// }
 
 void AppMainTask(void *pData)
 {
@@ -145,6 +166,10 @@ void AppMainTask(void *pData)
 // OS_Sleep(300);
 //     OS_CreateTask(KeepAliveTask,
 //         NULL, NULL, KEEP_ALIVE_TASK_STACK_SIZE, KEEP_ALIVE_TASK_PRIORITY, 0, 0, AUDIO_TASK_NAME);
+
+    OS_CreateTask(PMTask,
+            NULL, NULL, PM_TASK_STACK_SIZE, PM_TASK_PRIORITY, 0, 0, PM_TASK_NAME);
+    OS_Sleep(500);
 
     while(1)
     {
