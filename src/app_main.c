@@ -19,12 +19,14 @@
 #include "api_socket.h"
 #include "api_key.h"
 #include "gps.h"
+#include "api_hal_gpio.h"
 
 #include "gps_task.h"
 #include "mqtt_task.h"
 #include "audio_task.h"
 #include "sensor_task.h"
 #include "pm_task.h"
+#include "led_task.h"
 
 #define AppMain_TASK_STACK_SIZE    (1024 * 2)
 #define AppMain_TASK_PRIORITY      1 
@@ -115,32 +117,6 @@ void EventDispatch(API_Event_t* pEvent)
     }
 }
 
-
-// #define KEEP_ALIVE_TASK_STACK_SIZE    (1024 * 2)
-// #define KEEP_ALIVE_TASK_PRIORITY      6
-// #define KEEP_ALIVE_TASK_NAME "Keep alive Task"
-// void KeepAliveTask(void *pData)
-// {
-//     while(1)
-//     {
-//         if(mqttStatus == MQTT_STATUS_NEED_RESTART)
-//         {
-//             Trace(1, "Restart Mqtt Taskq");
-//             OS_StopTask(MqttTaskHandle);
-//             Trace(1, "stop Mqtt Taskq");
-//             bool ret = OS_DeleteTask(MqttTaskHandle);
-//             Trace(1, "Restart Mqtt Task status = %d", ret);
-//             OS_Sleep(100);
-//             Trace(1,"network attach again");
-
-//             OS_Sleep(3000);
-//             MqttTaskHandle = OS_CreateTask(MqttTask,
-//                 NULL, NULL, MQTT_TASK_STACK_SIZE, MQTT_TASK_PRIORITY, 0, 0, MQTT_TASK_NAME);
-//         }
-//         OS_Sleep(1500);
-//     }
-// }
-
 void AppMainTask(void *pData)
 {
     API_Event_t* event=NULL;
@@ -149,8 +125,6 @@ void AppMainTask(void *pData)
             NULL, NULL, GPS_TASK_STACK_SIZE, GPS_TASK_PRIORITY, 0, 0, GPS_TASK_NAME);
 
     OS_Sleep(5000);
-
-    
 
     MqttTaskHandle = OS_CreateTask(MqttTask,
         NULL, NULL, MQTT_TASK_STACK_SIZE, MQTT_TASK_PRIORITY, 0, 0, MQTT_TASK_NAME);
@@ -169,6 +143,10 @@ void AppMainTask(void *pData)
 
     OS_CreateTask(PMTask,
             NULL, NULL, PM_TASK_STACK_SIZE, PM_TASK_PRIORITY, 0, 0, PM_TASK_NAME);
+    OS_Sleep(500);
+
+    OS_CreateTask(LedTask,
+            NULL, NULL, LED_TASK_STACK_SIZE, LED_TASK_PRIORITY, 0, 0, LED_TASK_NAME);
     OS_Sleep(500);
 
     while(1)

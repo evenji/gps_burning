@@ -25,7 +25,7 @@ typedef enum{
 #define MQTT_TASK_PRIORITY      2
 #define MQTT_TASK_NAME          "MQTT Task"
 
-//#define EVEN
+#define EVEN
 
 
 #ifdef EVEN
