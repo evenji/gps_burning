@@ -55,7 +55,6 @@ char* getDevInfoJsonStr()
     devinfo.package_number = package_number;
     ret_gps = getGPSDate(devinfo.date);
     getGPSInfo(devinfo.longitude, devinfo.latitude, devinfo.altitude, devinfo.speed, &(devinfo.direction), &(devinfo.stars_tracked));
-
     sprintf(batterystr, "%d", g_sensorInfo.battery);
     sprintf(devinfo.altitude, "%.1f", g_sensorInfo.altitude);
     strcpy(devinfo.battery, batterystr);

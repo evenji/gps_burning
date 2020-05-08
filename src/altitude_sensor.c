@@ -92,12 +92,13 @@ long getAvePressure()
     int index = 0;
     long sum = 0;
     long ave = 0;
-    for(index = 0; index < 3; index++)
-    {
-        sum += bmp280_GetValue();
-        OS_Sleep(100);
-    }
-    ave = sum/3;
+    // for(index = 0; index < 3; index++)
+    // {
+    //     sum += bmp280_GetValue();
+    //     OS_Sleep(100);
+    // }
+    // ave = sum/3;
+    ave = bmp280_GetValue();
     Trace(1, "even real = %d", ave);
     return ave;
 }
@@ -113,7 +114,7 @@ float ZorePointcalibration()
 {
     float calibration_altitude = 0.0f;
     long avePressure = getAvePressure();
-    Trace(1,"Av altitude = %d",avePressure);
+    Trace(1,"current currentAltitue Av altitude = %d",avePressure);
     calibration_altitude = pressure2Altitude(avePressure);
     return calibration_altitude;
 }
@@ -135,6 +136,12 @@ float getAltitude()
     {
         return oldRelateAltitue;
     }
+}
+
+void sensorAltitudeSleep()
+{
+    unsigned char data = 0xfc;
+    I2C_WriteMem(I2C_BMP280, BMP280_ADDR, 0xf4, 1, &data, 1, I2C_DEFAULT_TIME_OUT);
 }
 
 void altitudeInit()
@@ -168,20 +175,22 @@ void altitudeInit()
     dig_P8 = bmp280_MultipleReadTwo(0x9C);
     dig_P9 = bmp280_MultipleReadTwo(0x9E);
 
-    // Trace(1,"11read addr 0x88, data: %d",dig_T1);
-    // Trace(1,"11read addr 0x8A, data: %d",dig_T2);
-    // Trace(1,"11read addr 0x8C, data: %d",dig_T3);
-    // Trace(1,"11read addr 0x8E, data: %d",dig_P1);
-    // Trace(1,"11read addr 0x90, data: %d",dig_P2);
-    // Trace(1,"11read addr 0x92, data: %d",dig_P3);
-    // Trace(1,"11read addr 0x94, data: %d",dig_P4);
-    // Trace(1,"11read addr 0x96, data: %d",dig_P5);
-    // Trace(1,"11read addr 0x98, data: %d",dig_P6);
-    // Trace(1,"11read addr 0x9A, data: %d",dig_P7);
-    // Trace(1,"11read addr 0x9C, data: %d",dig_P8);
-    // Trace(1,"11read addr 0x9E, data: %d",dig_P9);
+    Trace(1,"11read addr 0x88, data: %d",dig_T1);
+    Trace(1,"11read addr 0x8A, data: %d",dig_T2);
+    Trace(1,"11read addr 0x8C, data: %d",dig_T3);
+    Trace(1,"11read addr 0x8E, data: %d",dig_P1);
+    Trace(1,"11read addr 0x90, data: %d",dig_P2);
+    Trace(1,"11read addr 0x92, data: %d",dig_P3);
+    Trace(1,"11read addr 0x94, data: %d",dig_P4);
+    Trace(1,"11read addr 0x96, data: %d",dig_P5);
+    Trace(1,"11read addr 0x98, data: %d",dig_P6);
+    Trace(1,"11read addr 0x9A, data: %d",dig_P7);
+    Trace(1,"11read addr 0x9C, data: %d",dig_P8);
+    Trace(1,"11read addr 0x9E, data: %d",dig_P9);
 
     OS_Sleep(100);
+    ZorePointcalibration();
     g_calibration_altitude = ZorePointcalibration();
     Trace(1,"bmp280 calibration value = %f",g_calibration_altitude);
 }
+

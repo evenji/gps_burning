@@ -10,6 +10,7 @@
 #include "api_hal_adc.h"
 #include "sensor_task.h"
 #include "altitude_sensor.h"
+#include "led_task.h"
 
 #define BATTERY_VOLTAGE_MV_MAX 4150
 #define BATTERY_VOLTAGE_MV_MIN 3000
@@ -34,6 +35,7 @@ void getBatteryInfo()
         {
             g_sensorInfo.battery = (uint32_t)(batteryVoltagemv - BATTERY_VOLTAGE_MV_MIN) *100 / (BATTERY_VOLTAGE_MV_MAX - BATTERY_VOLTAGE_MV_MIN);
         }
+        LED_Set_Bat_Quality(g_sensorInfo.battery);
         Trace(1,"ADC value:%d, %dmV battery=%d",value,batteryVoltagemv,g_sensorInfo.battery);
     }
 }

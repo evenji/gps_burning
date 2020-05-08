@@ -9,5 +9,6 @@
 
 void  altitudeInit();
 float getAltitude();
+void sensorAltitudeSleep();
 
 #endif

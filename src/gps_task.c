@@ -9,6 +9,7 @@
 #include "math.h"
 #include "gps.h"
 #include "gps_task.h"
+#include "led_task.h"
 
 #define MAIN_TASK_STACK_SIZE    (2048 * 2)
 #define MAIN_TASK_PRIORITY      1
@@ -138,36 +139,37 @@ void gps_Task(void *pData)
     {
         if(isGpsOn)
         {
-            //show fix info
-            isFixed = gpsInfo->gsa[0].fix_type > gpsInfo->gsa[1].fix_type ?gpsInfo->gsa[0].fix_type:gpsInfo->gsa[1].fix_type;
-            char* isFixedStr = NULL;;            
-            if(isFixed == 2)
-                isFixedStr = "2D fix";
-            else if(isFixed == 3)
-            {
-                if(gpsInfo->gga.fix_quality == 1)
-                    isFixedStr = "3D fix";
-                else if(gpsInfo->gga.fix_quality == 2)
-                    isFixedStr = "3D/DGPS fix";
-            }
-            else
-                isFixedStr = "no fix";
+            // //show fix info
+            // isFixed = gpsInfo->gsa[0].fix_type > gpsInfo->gsa[1].fix_type ?gpsInfo->gsa[0].fix_type:gpsInfo->gsa[1].fix_type;
+            // char* isFixedStr = NULL;;            
+            // if(isFixed == 2)
+            //     isFixedStr = "2D fix";
+            // else if(isFixed == 3)
+            // {
+            //     if(gpsInfo->gga.fix_quality == 1)
+            //         isFixedStr = "3D fix";
+            //     else if(gpsInfo->gga.fix_quality == 2)
+            //         isFixedStr = "3D/DGPS fix";
+            // }
+            // else
+            //     isFixedStr = "no fix";
 
-            //convert unit ddmm.mmmm to degree(°) 
-            int temp = (int)(gpsInfo->rmc.latitude.value/gpsInfo->rmc.latitude.scale/100);
-            double latitude = temp+(double)(gpsInfo->rmc.latitude.value - temp*gpsInfo->rmc.latitude.scale*100)/gpsInfo->rmc.latitude.scale/60.0;
-            temp = (int)(gpsInfo->rmc.longitude.value/gpsInfo->rmc.longitude.scale/100);
-            double longitude = temp+(double)(gpsInfo->rmc.longitude.value - temp*gpsInfo->rmc.longitude.scale*100)/gpsInfo->rmc.longitude.scale/60.0;
+            // //convert unit ddmm.mmmm to degree(°) 
+            // int temp = (int)(gpsInfo->rmc.latitude.value/gpsInfo->rmc.latitude.scale/100);
+            // double latitude = temp+(double)(gpsInfo->rmc.latitude.value - temp*gpsInfo->rmc.latitude.scale*100)/gpsInfo->rmc.latitude.scale/60.0;
+            // temp = (int)(gpsInfo->rmc.longitude.value/gpsInfo->rmc.longitude.scale/100);
+            // double longitude = temp+(double)(gpsInfo->rmc.longitude.value - temp*gpsInfo->rmc.longitude.scale*100)/gpsInfo->rmc.longitude.scale/60.0;
 
             
-            //you can copy ` latitude,longitude ` to http://www.gpsspg.com/maps.htm check location on map
+            // //you can copy ` latitude,longitude ` to http://www.gpsspg.com/maps.htm check location on map
 
-            snprintf(buffer,sizeof(buffer),"GPS fix mode:%d, BDS fix mode:%d, fix quality:%d, satellites tracked:%d, gps sates total:%d, is fixed:%s, coordinate:WGS84, Latitude:%f, Longitude:%f, unit:degree,altitude:%f",gpsInfo->gsa[0].fix_type, gpsInfo->gsa[1].fix_type,
-                                                                gpsInfo->gga.fix_quality,gpsInfo->gga.satellites_tracked, gpsInfo->gsv[0].total_sats, isFixedStr, latitude,longitude,gpsInfo->gga.altitude);
-            //show in tracer
-            Trace(2,buffer);
+            // snprintf(buffer,sizeof(buffer),"GPS fix mode:%d, BDS fix mode:%d, fix quality:%d, satellites tracked:%d, gps sates total:%d, is fixed:%s, coordinate:WGS84, Latitude:%f, Longitude:%f, unit:degree,altitude:%f",gpsInfo->gsa[0].fix_type, gpsInfo->gsa[1].fix_type,
+            //                                                     gpsInfo->gga.fix_quality,gpsInfo->gga.satellites_tracked, gpsInfo->gsv[0].total_sats, isFixedStr, latitude,longitude,gpsInfo->gga.altitude);
+            // //show in tracer
+            // Trace(2,buffer);
+            LED_Set_GPS_Quality(gpsInfo->gga.satellites_tracked);
         }
 
-        OS_Sleep(5000);
+        OS_Sleep(1000);
     }
 }

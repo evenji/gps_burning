@@ -91,6 +91,7 @@ void EventDispatch(API_Event_t* pEvent)
         case API_EVENT_ID_SIGNAL_QUALITY:
             Trace(1,"CSQ:%d",pEvent->param1);
             csq = pEvent->param1;
+            LED_Set_GPRS_Quality(csq);
             break;
         
         case API_EVENT_ID_KEY_DOWN:
@@ -120,6 +121,10 @@ void EventDispatch(API_Event_t* pEvent)
 void AppMainTask(void *pData)
 {
     API_Event_t* event=NULL;
+
+    LedTaskHandle = OS_CreateTask(LedTask,
+            NULL, NULL, LED_TASK_STACK_SIZE, LED_TASK_PRIORITY, 0, 0, LED_TASK_NAME);
+    OS_Sleep(500);
     
     OS_CreateTask(gps_Task,
             NULL, NULL, GPS_TASK_STACK_SIZE, GPS_TASK_PRIORITY, 0, 0, GPS_TASK_NAME);
@@ -143,10 +148,6 @@ void AppMainTask(void *pData)
 
     OS_CreateTask(PMTask,
             NULL, NULL, PM_TASK_STACK_SIZE, PM_TASK_PRIORITY, 0, 0, PM_TASK_NAME);
-    OS_Sleep(500);
-
-    OS_CreateTask(LedTask,
-            NULL, NULL, LED_TASK_STACK_SIZE, LED_TASK_PRIORITY, 0, 0, LED_TASK_NAME);
     OS_Sleep(500);
 
     while(1)
